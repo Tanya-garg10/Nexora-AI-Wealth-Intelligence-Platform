@@ -36,34 +36,20 @@ export function loadCredentials(): TrueMarketsCredentials | null {
     let keyId = process.env.TRUE_MARKETS_API_KEY_ID || "";
     let privateKeyJwk: Record<string, any> | null = null;
 
-    if (process.env.TM_KEY_FILE && existsSync(process.env.TM_KEY_FILE)) {
-      const parsed = JSON.parse(readFileSync(process.env.TM_KEY_FILE, "utf8"));
-      keyId = parsed.key_id || keyId;
-      privateKeyJwk = parsed.private_key || null;
-    } else if (process.env.TRUE_MARKETS_PRIVATE_KEY_JWK) {
-      privateKeyJwk = JSON.parse(process.env.TRUE_MARKETS_PRIVATE_KEY_JWK);
-    }
-
     if (!keyId || !privateKeyJwk) {
       return null;
     }
 
-    let signerPublicKey = process.env.TRUE_MARKETS_SIGNER_PUBLIC_KEY || "";
-    let signerPrivateKey = process.env.TRUE_MARKETS_SIGNER_PRIVATE_KEY || "";
-
-    if (process.env.SIGNER_KEY_FILE && existsSync(process.env.SIGNER_KEY_FILE)) {
-      const parsedSigner = JSON.parse(readFileSync(process.env.SIGNER_KEY_FILE, "utf8"));
-      signerPublicKey = parsedSigner.signer_public_key || signerPublicKey;
-      signerPrivateKey = parsedSigner.signer_private_key || signerPrivateKey;
-    }
+    let signerPublicKey = "";
+    let signerPrivateKey = "";
 
     return {
       keyId,
       privateKeyJwk,
-      organizationId: process.env.TRUE_MARKETS_ORGANIZATION_ID || undefined,
-      signerPublicKey: signerPublicKey || undefined,
-      signerPrivateKey: signerPrivateKey || undefined,
-      defaultUserId: process.env.TRUE_MARKETS_USER_ID || undefined,
+      organizationId: undefined,
+      signerPublicKey: undefined,
+      signerPrivateKey: undefined,
+      defaultUserId: undefined,
     };
   } catch {
     return null;
