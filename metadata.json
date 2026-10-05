@@ -1,0 +1,6 @@
+{
+  "name": "NEXORA — AI Wealth Intelligence",
+  "description": "Understand your wealth. Act with confidence. AI-powered wealth intelligence, portfolio risk analysis, scenario simulation, and seamless trading through True Markets Gateway.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
