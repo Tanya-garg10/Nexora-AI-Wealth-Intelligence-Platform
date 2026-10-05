@@ -4,8 +4,6 @@
 
 Nexora is an AI-powered wealth intelligence platform built for the **True Markets “Build the Next Wealth App”** builder challenge. It helps investors understand their portfolio concentration, analyze risk, simulate investment scenarios, monitor markets, and execute trades through the **True Markets Gateway API**.
 
----
-
 ## 1. Product Overview
 
 Modern investors often face a fragmented experience: portfolio trackers show static charts without explaining risk concentration, and trading terminals execute orders without showing how a trade alters overall portfolio balance.
@@ -15,8 +13,6 @@ Modern investors often face a fragmented experience: portfolio trackers show sta
 2. **Nexora AI Copilot**: Uses server-side Gemini (`gemini-3.8-flash`) to turn portfolio telemetry into structured, human-readable explanations of concentration, risk, and scenario trade-offs.
 3. **Interactive Wealth Simulator**: Lets users model single or multi-row portfolio adjustments (e.g., `NVDA +$2,000`) and compare **BEFORE** vs. **AFTER SIMULATION** sector weights and Risk Scores (`62` → `68`) with a clear `SIMULATION — NO TRADE EXECUTED` boundary.
 4. **True Markets Gateway Trading**: Connects directly to the official True Markets Gateway API (`https://api.truemarkets.co`) for live asset catalog discovery (`GET /v1/gateway/assets`), ES256 organization token minting, user wallet provisioning, and P-256 stamped order execution.
-
----
 
 ## 2. Features & Routes
 
@@ -30,8 +26,6 @@ Modern investors often face a fragmented experience: portfolio trackers show sta
 - **`/activity` (Activity Timeline)**: Filterable audit log of portfolio updates, AI analyses, order previews, and trade submissions.
 - **`/settings` (Settings & Gateway Status)**: Live True Markets connection verification, test user wallet provisioning, AI preferences, and security safeguards.
 
----
-
 ## 3. Tech Stack
 
 - **Frontend**: React 19, TypeScript, Tailwind CSS v4, React Router v7, Recharts, Lucide React
@@ -39,8 +33,6 @@ Modern investors often face a fragmented experience: portfolio trackers show sta
 - **AI Engine**: Google GenAI SDK (`@google/genai`) running strictly server-side (`POST /api/copilot`)
 - **Trading Integration**: Official True Markets Gateway REST API (`https://api.truemarkets.co`) using native Node.js `node:crypto` ECDSA P-256 signing
 - **Validation**: Zod request/schema validation
-
----
 
 ## 4. Architecture & True Markets Gateway Integration
 
@@ -64,14 +56,10 @@ src/lib/true-markets/
    - Sizes market buys with `qty_unit: "quote"` and sells/limits with `qty_unit: "base"`.
    - Stamps each returned unsigned transaction payload using P-256 ECDSA (`SIGNATURE_SCHEME_TK_API_P256`) and submits `signatures[]` with `auth_type: "api_key"`.
 
----
-
 ## 5. Demo Mode vs. Connected Mode
 
 - **Demo Mode (`DEMO MODE`)**: When True Markets organization credentials are not configured in `.env`, Nexora still fetches the **live public asset catalog** from `api.truemarkets.co`, displays clearly labeled demo portfolio/market pricing, and allows full two-step order previews. If a user attempts to execute a live order without server credentials, the backend returns a transparent configuration error and offers to record a labeled `Simulated` order preview—**never** pretending a real trade occurred.
 - **Connected Mode (`TRUE MARKETS CONNECTED`)**: When server credentials (`TM_KEY_FILE` or `TRUE_MARKETS_API_KEY_ID` + `TRUE_MARKETS_PRIVATE_KEY_JWK` + `TRUE_MARKETS_SIGNER_PRIVATE_KEY`) are provided, orders are created, signed, and executed against the True Markets Gateway API.
-
----
 
 ## 6. Local Setup & Environment Variables
 
@@ -95,8 +83,6 @@ src/lib/true-markets/
    ```bash
    npm run build
    ```
-
----
 
 ## 7. Security Considerations
 
