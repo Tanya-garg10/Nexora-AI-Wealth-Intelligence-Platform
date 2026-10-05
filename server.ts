@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import OpenAI from "openai";
 import { getConnectionStatus } from "./src/lib/true-markets/client.ts";
 import { getTrueMarketsAssets } from "./src/lib/true-markets/assets.ts";
 import {
@@ -231,8 +231,8 @@ async function startServer() {
       return;
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+    const apiKey = process.env.FEATHERLESS_API_KEY;
+    if (!apiKey || apiKey === "MY_FEATHERLESS_API_KEY") {
       // Deterministic structured fallback when GEMINI_API_KEY is not set
       const lower = prompt.toLowerCase();
       let fallback = FALLBACK_COPILOT_RESPONSES.default;
@@ -250,13 +250,9 @@ async function startServer() {
     }
 
     try {
-      const ai = new GoogleGenAI({
+      const openai = new OpenAI({
         apiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
+        baseURL: "https://api.featherless.ai/v1",
       });
 
       const portfolioContext = JSON.stringify({
@@ -275,73 +271,23 @@ async function startServer() {
         })),
       });
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: `User question: "${prompt}"\n\nPortfolio Context (Demo Data): ${portfolioContext}`,
-        config: {
-          systemInstruction:
-            "You are Nexora Copilot, an institutional-grade AI wealth intelligence analyst. " +
+      const systemPrompt = "You are Nexora Copilot, an institutional-grade AI wealth intelligence analyst. " +
             "Analyze the provided demo portfolio data accurately. " +
             "NEVER give guaranteed investment advice, never predict guaranteed future stock rises, and never offer to auto-execute trades. " +
             "Always frame insights as analytical explanations of concentration, risk, and scenario trade-offs. " +
-            "Explicitly acknowledge that portfolio metrics reflect the demo portfolio snapshot.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              observation: { type: Type.STRING },
-              risk: {
-                type: Type.OBJECT,
-                properties: {
-                  level: { type: Type.STRING },
-                  score: { type: Type.NUMBER },
-                  explanation: { type: Type.STRING },
-                },
-                required: ["level", "score", "explanation"],
-              },
-              concentration: {
-                type: Type.OBJECT,
-                properties: {
-                  primarySector: { type: Type.STRING },
-                  percentage: { type: Type.STRING },
-                  status: { type: Type.STRING },
-                  detail: { type: Type.STRING },
-                },
-                required: ["primarySector", "percentage", "status", "detail"],
-              },
-              potentialImpact: { type: Type.STRING },
-              thingsToConsider: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              metrics: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    label: { type: Type.STRING },
-                    value: { type: Type.STRING },
-                    context: { type: Type.STRING },
-                  },
-                  required: ["label", "value", "context"],
-                },
-              },
-            },
-            required: [
-              "summary",
-              "observation",
-              "risk",
-              "concentration",
-              "potentialImpact",
-              "thingsToConsider",
-              "metrics",
-            ],
-          },
-        },
+            "Explicitly acknowledge that portfolio metrics reflect the demo portfolio snapshot.\n" +
+            "Respond ONLY with valid JSON using the following structure: { summary: string, observation: string, risk: { level: string, score: number, explanation: string }, concentration: { primarySector: string, percentage: string, status: string, detail: string }, potentialImpact: string, thingsToConsider: string[], metrics: { label: string, value: string, context: string }[] }";
+
+      const response = await openai.chat.completions.create({
+        model: "meta-llama/Meta-Llama-3-8B-Instruct",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `User question: "${prompt}"\n\nPortfolio Context (Demo Data): ${portfolioContext}` }
+        ],
+        response_format: { type: "json_object" },
       });
 
-      const rawText = response.text?.trim() || "";
+      const rawText = response.choices[0]?.message?.content?.trim() || "";
       const structured = JSON.parse(rawText);
       res.json({
         ok: true,
